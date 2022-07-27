@@ -24,78 +24,79 @@ for (let iRows = 0; iRows <= grid.nRows; iRows++) {
 let coordinatesLength = coordinates.length;
 
 drawGrid();
-drawPolygon((grid.nCols * grid.cell.width)/2, (grid.nRows * grid.cell.height)/2);
+drawPuzzlePiece1((grid.nCols * grid.cell.width)/2, (grid.nRows * grid.cell.height)/2);
 canvas.addEventListener("mousemove", updateGrid);
 canvas.addEventListener("mousemove", updateDrawing);
 
 function updateDrawing(e) {
     var rect = canvas.getBoundingClientRect();
-    drawPolygon(e.x - rect.x, e.y - rect.y);
+    drawPuzzlePiece1(e.x - rect.x, e.y - rect.y);
 }
 
-function drawPolygon(x, y){
+function drawPuzzlePiece1(x, y){
     ctx.beginPath();
     ctx.strokeStyle="black";
     ctx.lineWidth = 6;
-    ctx.moveTo(x - 50, y + 50);
-    ctx.lineTo(x + 50, y + 50);
-    ctx.lineTo(x + 50, y - 50);
-    ctx.lineTo(x - 50, y - 50);
-    ctx.lineTo(x - 50, y + 50);
-    ctx.stroke();
+    ctx.moveTo(x + 15, y);
+    ctx.lineTo(x + 65, y + 80);
+    ctx.lineTo(x + 35, y + 80);
+    ctx.lineTo(x - 15, y);
+    ctx.lineTo(x + 35, y - 80);
+    ctx.lineTo(x + 65, y - 80);
+    ctx.lineTo(x + 15, y+3);
+    ctx.stroke();  
 }
 
-//The following code will set parameters around the polygon, from xMin to xMax, and from yMin to yMax
-//any coordinate within those parameters will go through a loop that checks wether it's inside the polygon
+//The following function gets the vertices of the polygon according to the mouse's location, then checks whether the coordinates
+//within the boundaries of the polygon are inside by calling another function 
 function updateGrid(e){
     drawGrid();
     var rect = canvas.getBoundingClientRect();
-    //polygon vertices are updated. *This should be changed according to the polygon
-    const vertices=[[e.x - 50, e.y + 50],[e.x + 50, e.y + 50],[e.x + 50, e.y - 50],[e.x - 50, e.y - 50]];
-    //getting only the x coordinates of the vertices (without repeating numbers)
-    const xVertices = [];
+    //***Vertices should be updated according to the polygon
+    const vertices=[[e.x + 15, e.y],[e.x + 65, e.y + 80],[e.x + 35, e.y + 80],[e.x - 15, e.y],
+    [e.x + 35, e.y - 80],[e.x + 65, e.y - 80],[e.x + 15, e.y]];
+    //Updating vertices so they become with respect to the canvas rather than the screen.
     for(let i = 0; i < vertices.length; i++){
-        if(xVertices.includes(vertices[i][0] - rect.x) == false){
-            //- rect.x so it can give the coordinates with respect to the grid, not the screen.
-            xVertices.push(vertices[i][0] - rect.x);
-        }
+        vertices[i][0] = vertices[i][0] - rect.x;
+        vertices[i][1] = vertices[i][1] - rect.y;
     }
-    //getting the biggest and smallest x coordsinates of the vertices
-    let xVerticesMin = Math.min(...xVertices), xVerticesMax = Math.max(...xVertices);
-    //same for y
-    const yVertices = [];
+    //Taking the boundaries. If the coordinate isn't within the boundaries of a polygon, it won't enter the loop
+    //I'm hoping this makes the function more efficient, but I'm not sure if there's actually a difference.
+    var xNumbers = [], yNumbers = [];
     for(let i = 0; i < vertices.length; i++){
-        if(yVertices.includes(vertices[i][1]) == false){
-            yVertices.push(vertices[i][1] - rect.y);
-        }
+        xNumbers.push(vertices[i][0]);
+        yNumbers.push(vertices[i][1]);
     }
-    let yVerticesMin = Math.min(...yVertices) - 0.125, yVerticesMax = Math.max(...yVertices)- 0.125;
-    //You don't really need to check if it crosses lines, just check if it crosses vertices
+    var xMax = Math.max(...xNumbers), xMin = Math.min(...xNumbers);
+    var yMax = Math.max(...yNumbers), yMin = Math.min(...yNumbers);
+
     for(let i = 0; i < coordinatesLength; i++){
-        //+1 so it doesn't check itself, this is to avoid a blue cell not being drawn
-        //when a vertex is exactly on the coordinate
-        let xIntersectCounter = 0;
-        let xLine = coordinates[i][0] +1;
-        if(coordinates[i][0] >= xVerticesMin && coordinates[i][0] <= xVerticesMax ){
-            if(coordinates[i][1] >= yVerticesMin && coordinates[i][1] <= yVerticesMax){
-                //The following loop draws a line from the coordinate till xMax.
-                //The line is actually just a pixel that iterates within the mentioned range, checking how many times it equals a vertex's x coordinate. 
-                //Based on that number, we can deduce whether the coordinate is inside the polygon. 
-                for(let j = 0; j <= xVerticesMax - coordinates[i][0]; j++){
-                    for(let xVert = 0; xVert < xVertices.length; xVert++){
-                        if(xLine == xVertices[xVert]){
-                            xIntersectCounter++;
-                        }
-                    }
-                    xLine++;
-                }
-                if(xIntersectCounter%2 == 1){
+        if(coordinates[i][0] >= xMin && coordinates[i][0] <= xMax){
+            if(coordinates[i][1] >= yMin && coordinates[i][1] <= yMax){
+                var point = [coordinates[i][0], coordinates[i][1]];
+                var inside = inPolygon(point, vertices);
+                if(inside == true){
                     drawBlueCells(coordinates[i][0], coordinates[i][1]);
                 }
             }
-            
         }
     }
+}
+
+//This function will check whether the point is inside the polygon
+function inPolygon(point, vertices){
+    var verLength = vertices.length;
+    var x = point[0], y = point[1];
+    var inside = false;
+    for(var i = 0, j = verLength - 1; i < verLength; j = i++){
+        var xi = vertices[i][0], yi = vertices[i][1];
+        var xj = vertices[j][0], yj = vertices[j][1];
+        
+        var intersect = ((yi > y) != (yj > y))
+            &&(x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
 }
 //this function will draw blue cells on the given coordinate and the cells to it's left, upper left, and above
 function drawBlueCells(x, y){
