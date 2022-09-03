@@ -1,6 +1,5 @@
 class node{
-    constructor(walkable, surroundingNodes, coordinates,gValue, hValue, fValue){
-        this.walkable = walkable;
+    constructor(surroundingNodes, coordinates,gValue, hValue, fValue){
         this.surroundingNodes = surroundingNodes;
         this.coordinates = coordinates;
         this.gValue = gValue;
@@ -9,12 +8,6 @@ class node{
     }
     getCoordinates() {
         return this.coordinates;
-    }
-    getWalkable() {
-        return this.walkable;
-    }
-    setWalkable(value){
-        this.walkable = value;
     }
     setHvalue(value){
         this.hValue = value;
