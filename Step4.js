@@ -24,13 +24,11 @@ for(let i = 1, cellNum = 0; i <= grid.nRows; i++){
         nodes.push(thisNode);
     }
 }
-
 drawGrid();
 updateDrawing();
 let i = startNode, distance = 0, path = [];
 let hmm = 0;
 while(i !== finishNode){
-    let minFList = [], minFListFValues = [], minF;
     let sNodes = checkSurroundingNodes(i, false);
     //set the nodes neighbouring the i'th node to nodesToEvaluate if appropriate
     for(let k = 0; k < sNodes.length; k++){
@@ -38,8 +36,9 @@ while(i !== finishNode){
             nodesToEvaluate.push(sNodes[k]);
         }
     }
+    updateSurroundingValues(i);
     //getting the F-values of the nodes from nodesToEvaluate
-    let fValues = [], fValuesIndex = [], nodesToEvaluateLength = nodesToEvaluate.length;
+    let minF, fValues = [], fValuesIndex = [], nodesToEvaluateLength = nodesToEvaluate.length;
     for(let j = 0; j < nodesToEvaluateLength; j++){
         fValues.push(nodes[nodesToEvaluate[j]].getFvalue());
         fValuesIndex.push(nodesToEvaluate[j]);
@@ -63,15 +62,14 @@ while(i !== finishNode){
     }
     //If the minimum F-value isn't repeated, just take the node.
     minF = fValuesIndex[fValues.indexOf(tempMinF)];
-    updateSurroundingGValues(i);
     i = minF;
+    path.push(minF);
     nodesToEvaluate.splice(nodesToEvaluate.indexOf(i), 1);  
     EvaluatedNodes.push(minF);
 }
-
 findShortestRoute();
 updateDrawing();
-// writeValue(); //If you need to check any of the values
+writeValue(); //If you need to check any of the values
 // DrawPathLine(path); //If you need to check the path
 
 //retraces the path from the finishNode to the startNode using the smallest G-values
@@ -89,7 +87,7 @@ function findShortestRoute(){
         shortestPathNodes.push(i);
     }
 }
-function updateSurroundingGValues(i){
+function updateSurroundingValues(i){
     let sNodes = checkSurroundingNodes(i,false);
 
     for(let j = 0; j < sNodes.length; j++){
@@ -127,6 +125,8 @@ function gValue(i){
         return null;
 }
 function fValue(i){
+    if(closedNodes.includes(i))
+    return null;
     return hValue(i) + gValue(i);
 }
 function hValue(i){
@@ -309,9 +309,10 @@ function writeValue(){
         ctx.font = "bold 14px Arial";
         ctx.fillStyle = "black";
         ctx.textAlign = "center";
-        //change to G or H if needed
-        ctx.fillText(nodes[i].getFvalue(), x, y);
-        // ctx.fillText(i, x, y);
+        //change to G, F, or H if needed
+        // ctx.fillText(nodes[i].getFvalue(), x, y+13);
+        // ctx.fillText(nodes[i].getHvalue(), x, y);
+        ctx.fillText(i, x, y);
     }
 }
 //If you need to check the path
