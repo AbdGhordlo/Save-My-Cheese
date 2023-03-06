@@ -1,2 +1,3 @@
 # Save-My-Cheese
-A game where a piece of cheese has to be protected from a group of mice, this is done by placing puzzle pieces that block their path. The mice have to recalculate and update their path according to the puzzle pieces.
+SaveMyCheese is a game where the user has to place the puzzle pieces in the appropriate position to block the mouse from reaching the cheese. Every time a puzzle piece snaps in its correct position, the mouse recalculates the shortest path for reaching the cheese using the A* Pathfinding Aglorithm.
+![SaveMyCheese](https://user-images.githubusercontent.com/90023620/223183354-45f88a79-8338-4fdc-bbb0-f32b7bc1b76c.png)
